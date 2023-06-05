@@ -4,7 +4,9 @@
 #include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
+#include "llvm/Support/Signals.h"
 #include "llvm/Support/ToolOutputFile.h"
+#include "llvm/Support/WithColor.h"
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -81,9 +83,11 @@ public:
 };
 
 int main(int argc, const char **argv) {
-  auto ExpectedParser = CommonOptionsParser::create(argc, argv, MyToolCategory);
+  llvm::sys::PrintStackTraceOnErrorSignal(argv[0]);
+  auto ExpectedParser = CommonOptionsParser::create(argc, argv, MyToolCategory,
+                                                    llvm::cl::OneOrMore);
   if (!ExpectedParser) {
-    llvm::errs() << ExpectedParser.takeError();
+    llvm::WithColor::error() << llvm::toString(ExpectedParser.takeError());
     return 1;
   }
   CommonOptionsParser &OptionsParser = ExpectedParser.get();
